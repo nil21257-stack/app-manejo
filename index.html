@@ -93,7 +93,11 @@
   ul.checklist li{display:flex; align-items:flex-start; gap:9px; padding:7px 0; border-bottom:1px solid var(--line); font-size:13.8px;}
   ul.checklist li:last-child{border-bottom:none;}
   ul.checklist input[type=checkbox]{width:18px; height:18px; margin-top:1px; accent-color:var(--accent); flex:none;}
-  ul.checklist li.checked span{color:var(--muted); text-decoration:line-through;}
+  ul.checklist li.checked > div > span{color:var(--muted); text-decoration:line-through;}
+  ul.checklist li > div{flex:1; min-width:0;}
+  .legal-note{font-size:12px; color:var(--muted); line-height:1.45; margin-top:4px; padding:7px 8px; background:var(--bg); border-left:2px solid var(--line); border-radius:4px;}
+  .legal-note .ln-tag{font-weight:700; color:var(--accent); font-size:10.5px; text-transform:uppercase; letter-spacing:.3px;}
+  .legal-note .ln-tag.ln-country{color:var(--amber);}
 
   .notes{margin-top:12px;}
   .notes .vb-label{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; display:block;}
@@ -127,6 +131,10 @@
       <select id="profile"></select>
       <input id="profile-new" type="text" placeholder="Nuevo alumno…" style="max-width:120px" hidden>
     </div>
+    <div class="profile-row">
+      <label for="country">País</label>
+      <select id="country"></select>
+    </div>
   </header>
 
   <div class="tabs" id="tabs"></div>
@@ -147,56 +155,216 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// Países soportados para las notas legales comparadas.
+const COUNTRIES = {
+  RD: "República Dominicana",
+  US: "Estados Unidos",
+  VE: "Venezuela",
+  OCC: "Europa occidental (referencia)"
+};
+
+// Cada ítem del checklist es {text, legal}. "legal.universal" siempre existe;
+// las claves de país (RD/US/VE/OCC) solo aparecen cuando la ley realmente cambia.
+function I(text, legal){ return { text, legal: legal || { universal: "No varía por país — es una habilidad de manejo, igual en cualquier lugar." } }; }
+
 const CURRICULUM = {
   principiante: {
     label: "Principiante",
     modules: [
       { id:"p1", title:"El vehículo por dentro",
-        checklist:["Identifica volante, pedales y palanca/automático","Reconoce el tablero e indicadores","Ajusta espejos y asiento","Se abrocha el cinturón antes de todo"] },
+        checklist:[
+          I("Identifica volante, pedales y palanca/automático", { universal:"No varía: la disposición de los controles es igual en todo país que conduce por la derecha (RD, EE.UU., Venezuela y casi toda Europa occidental)." }),
+          I("Reconoce el tablero e indicadores"),
+          I("Ajusta espejos y asiento"),
+          I("Se abrocha el cinturón antes de todo", {
+            universal:"El cinturón es obligatorio prácticamente en todo el mundo, pero la ley exacta cambia.",
+            RD:"Ley 63-17: obligatorio para el conductor y todos los pasajeros.",
+            US:"Obligatorio en 49 estados (la excepción es New Hampshire); multas y aplicación varían por estado.",
+            VE:"Obligatorio por la Ley de Tránsito Terrestre para todos los ocupantes.",
+            OCC:"Obligatorio en toda la Unión Europea, incluyendo asientos traseros."
+          }),
+        ] },
       { id:"p2", title:"Antes de arrancar",
-        checklist:["Completa el checklist pre-manejo (combustible, luces, llantas)","Revisa frenos de mano y espejos","Arranca con la posición correcta al volante"] },
+        checklist:[
+          I("Completa el checklist pre-manejo (combustible, luces, llantas)"),
+          I("Revisa frenos de mano y espejos"),
+          I("Arranca con la posición correcta al volante"),
+        ] },
       { id:"p3", title:"Señales de tránsito",
-        checklist:["Reconoce señales reglamentarias","Reconoce señales preventivas e informativas","Entiende las líneas y marcas viales","Responde correctamente a los semáforos"] },
+        checklist:[
+          I("Reconoce señales reglamentarias", {
+            universal:"Las formas básicas (triángulo=peligro, octágono=alto, círculo=prohibición) se repiten en casi toda América.",
+            RD:"RD no firmó el Convenio de Viena; su señalización sigue de cerca el MUTCD de EE.UU.",
+            US:"Se rige por el MUTCD (Manual on Uniform Traffic Control Devices).",
+            VE:"Venezuela sí es parte del Convenio de Viena sobre Señalización (ONU) — algunos símbolos pueden verse distintos a los de RD/EE.UU. aunque signifiquen lo mismo.",
+            OCC:"La mayoría de Europa occidental sigue el Convenio de Viena, igual que Venezuela — señalización muy parecida entre ambos."
+          }),
+          I("Reconoce señales preventivas e informativas", { universal:"Aplica la misma división MUTCD vs. Convenio de Viena que en señales reglamentarias (ver ítem anterior)." }),
+          I("Entiende las líneas y marcas viales", { universal:"Blanco y amarillo tienen el mismo significado general (carriles y sentidos) en los cuatro, con variaciones menores en el uso exacto del amarillo." }),
+          I("Responde correctamente a los semáforos", { universal:"Verde, ámbar y rojo significan lo mismo en RD, EE.UU., Venezuela y Europa occidental." }),
+        ] },
       { id:"p4", title:"Normas básicas de circulación",
-        checklist:["Respeta el derecho de vía","Mantiene el límite de velocidad","Guarda distancia de seguimiento","Usa direccionales y luces correctamente"] },
+        checklist:[
+          I("Respeta el derecho de vía", { universal:"El principio general (ceder el paso según la situación) es compartido, pero las reglas exactas en cruces sin señal varían por país — conviene verificar el manual local." }),
+          I("Mantiene el límite de velocidad", {
+            universal:"¡Ojo con las unidades al cambiar de país!",
+            RD:"Límites en km/h.",
+            US:"Límites en millas por hora (mph) — el único de los cuatro que no usa km/h.",
+            VE:"Límites en km/h.",
+            OCC:"Límites en km/h (excepción: el Reino Unido usa mph)."
+          }),
+          I("Guarda distancia de seguimiento", { universal:"Mismo principio en todos lados (regla de los 2-3 segundos); es una práctica de seguridad, no varía por ley." }),
+          I("Usa direccionales y luces correctamente"),
+        ] },
       { id:"p5", title:"Maniobras básicas en espacio controlado",
-        checklist:["Arranca y detiene el vehículo con suavidad","Gira a baja velocidad usando espejos","Revisa el punto ciego antes de moverse"] },
+        checklist:[
+          I("Arranca y detiene el vehículo con suavidad"),
+          I("Gira a baja velocidad usando espejos"),
+          I("Revisa el punto ciego antes de moverse"),
+        ] },
       { id:"p6", title:"Marco legal: carnet de aprendizaje",
-        checklist:["Explica qué es el carnet de aprendizaje","Conoce las categorías de licencia (1, 2, 3, 4)","Sabe que debe ir siempre con acompañante con licencia"] },
+        checklist:[
+          I("Explica qué es el carnet de aprendizaje", {
+            universal:"Concepto compartido (permiso provisional antes de la licencia definitiva); cada país le da su propio nombre y edad mínima. Edad mínima: RD 18, Venezuela 18, EE.UU. 16 (permiso de aprendizaje desde 14-15 según el estado), Europa occidental 17-18 según el país.",
+            RD:"Carnet de aprendizaje, válido 6 meses, requiere acompañante con licencia de la misma categoría.",
+            US:"Se llama 'learner's permit'; duración y reglas varían por estado.",
+            VE:"Permiso equivalente regulado por el INTT (Instituto Nacional de Transporte Terrestre).",
+            OCC:"Varios países de la UE tienen 'conducción acompañada' (ej. Francia desde los 15 años con un acompañante de 5+ años de experiencia)."
+          }),
+          I("Conoce las categorías de licencia (1, 2, 3, 4)", {
+            universal:"Las categorías numeradas de RD/Venezuela no existen igual en EE.UU., que usa su propio sistema por estado.",
+            RD:"1 motocicletas, 2 vehículos ligeros, 3-4 pesados (Ley 63-17).",
+            US:"Varía por estado; comúnmente Class D (carro), Class M (moto), CDL (comercial).",
+            VE:"Clasificación propia bajo la Ley de Tránsito Terrestre.",
+            OCC:"La Unión Europea usa categorías armonizadas: AM, A1, A2, A, B, C, D, etc."
+          }),
+          I("Sabe que debe ir siempre con acompañante con licencia", {
+            universal:"Principio compartido mientras se tiene el permiso provisional.",
+            RD:"Obligatorio durante los 6 meses del carnet de aprendizaje, acompañante de la misma categoría.",
+            US:"Varía por estado (período de manejo supervisado, a veces con horas mínimas registradas).",
+            VE:"Exigido por el INTT.",
+            OCC:"En países con conducción acompañada, el acompañante debe cumplir años mínimos de experiencia."
+          }),
+        ] },
     ]
   },
   intermedio: {
     label: "Intermedio",
     modules: [
       { id:"i1", title:"Manejo en vía urbana",
-        checklist:["Cruza intersecciones con seguridad","Maneja rotondas/glorietas","Cambia de carril verificando espejos y punto ciego"] },
+        checklist:[
+          I("Cruza intersecciones con seguridad"),
+          I("Maneja rotondas/glorietas", { universal:"El sentido de giro (antihorario) es igual en RD, EE.UU., Venezuela y la mayoría de Europa occidental porque todos conducen por la derecha. (Es al revés en países que conducen por la izquierda, como el Reino Unido.)" }),
+          I("Cambia de carril verificando espejos y punto ciego"),
+        ] },
       { id:"i2", title:"Estacionamiento",
-        checklist:["Estaciona en paralelo","Estaciona en reversa","Estaciona en línea/diagonal"] },
+        checklist:[
+          I("Estaciona en paralelo"),
+          I("Estaciona en reversa"),
+          I("Estaciona en línea/diagonal"),
+        ] },
       { id:"i3", title:"Maniobras del examen práctico",
-        checklist:["Usa direccionales en el momento correcto","Controla velocidad en curvas","Frena de forma controlada","Arranca en pendiente sin retroceder"] },
+        checklist:[
+          I("Usa direccionales en el momento correcto", { universal:"El formato exacto del examen práctico varía por autoridad: INTRANT (RD), DMV de cada estado (EE.UU.), INTT (Venezuela) — las maniobras base evaluadas son similares." }),
+          I("Controla velocidad en curvas"),
+          I("Frena de forma controlada"),
+          I("Arranca en pendiente sin retroceder"),
+        ] },
       { id:"i4", title:"Interacción con otros actores",
-        checklist:["Guarda distancia de motociclistas","Cede el paso a peatones","Respeta a ciclistas y transporte público"] },
+        checklist:[
+          I("Guarda distancia de motociclistas"),
+          I("Cede el paso a peatones"),
+          I("Respeta a ciclistas y transporte público", { universal:"Guardar distancia de ciclistas es universal; algunos países fijan una distancia mínima exacta por ley (ej. España exige 1.5m), mientras que RD, Venezuela y EE.UU. lo dejan como norma general sin metro exacto — aplícalo igual como mínimo." }),
+        ] },
       { id:"i5", title:"Condiciones variables",
-        checklist:["Maneja de noche con confianza","Maneja con lluvia leve","Identifica y evita baches a tiempo"] },
+        checklist:[
+          I("Maneja de noche con confianza", { universal:"El uso de luces de día (DRL) es obligatorio por ley en buena parte de Europa; en RD, EE.UU. y Venezuela no es obligatorio pero es buena práctica." }),
+          I("Maneja con lluvia leve"),
+          I("Identifica y evita baches a tiempo"),
+        ] },
       { id:"i6", title:"Documentación y responsabilidad",
-        checklist:["Sabe qué documentos llevar","Sabe qué hacer en un retén","Sabe qué hacer ante un accidente menor"] },
+        checklist:[
+          I("Sabe qué documentos llevar", {
+            universal:"Licencia + documentos del vehículo + seguro son la base en los cuatro; cambia el nombre y el tipo de seguro exigido.",
+            RD:"Licencia, matrícula y seguro obligatorio.",
+            US:"Licencia, registro (registration) y prueba de seguro — el mínimo exigido varía por estado.",
+            VE:"Licencia, certificado de circulación y seguro obligatorio del vehículo.",
+            OCC:"Licencia, documentación del vehículo y el 'certificado verde' de seguro reconocido en la UE."
+          }),
+          I("Sabe qué hacer en un retén", {
+            universal:"Mantener la calma, documentos a mano, seguir instrucciones del agente — igual en todos lados.",
+            RD:"Retenes a cargo de AMET/DIGESETT.",
+            US:"Se llama 'traffic stop'; procedimiento y derechos del conductor varían por estado.",
+            VE:"Alcabalas, a cargo de tránsito terrestre.",
+            OCC:"Controles de tránsito regulados por cada país de la UE."
+          }),
+          I("Sabe qué hacer ante un accidente menor", { universal:"El procedimiento base (seguridad primero, triángulos, fotos, reporte) es igual; lo que cambia es a quién llamar y si el reporte es obligatorio por ley en ese país." }),
+        ] },
     ]
   },
   avanzado: {
     label: "Avanzado",
     modules: [
       { id:"a1", title:"Manejo defensivo",
-        checklist:["Anticipa riesgos antes de que ocurran","Calcula distancia de frenado según velocidad","Mantiene la calma ante conductores agresivos"] },
+        checklist:[
+          I("Anticipa riesgos antes de que ocurran"),
+          I("Calcula distancia de frenado según velocidad"),
+          I("Mantiene la calma ante conductores agresivos"),
+        ] },
       { id:"a2", title:"Vías de alta velocidad",
-        checklist:["Se incorpora a la autopista con seguridad","Adelanta de forma segura","Usa el carril izquierdo correctamente"] },
+        checklist:[
+          I("Se incorpora a la autopista con seguridad", {
+            universal:"El concepto es igual; los límites numéricos cambian bastante entre países.",
+            RD:"Autopistas como Duarte o Las Américas: límites típicos entre 80-100 km/h.",
+            US:"Interestatales entre 55-80 mph (≈ 90-130 km/h) según el estado.",
+            VE:"Autopistas con límites típicos alrededor de 100-120 km/h.",
+            OCC:"Autopistas europeas suelen ir de 120 a 130 km/h; Alemania es la excepción famosa, con tramos de su Autobahn sin límite de velocidad."
+          }),
+          I("Adelanta de forma segura"),
+          I("Usa el carril izquierdo correctamente"),
+        ] },
       { id:"a3", title:"Emergencias",
-        checklist:["Sabe qué hacer ante un pinchazo","Reconoce sobrecalentamiento del motor","Sabe reaccionar si fallan los frenos","Coloca triángulos/luces de emergencia"] },
+        checklist:[
+          I("Sabe qué hacer ante un pinchazo"),
+          I("Reconoce sobrecalentamiento del motor"),
+          I("Sabe reaccionar si fallan los frenos"),
+          I("Coloca triángulos/luces de emergencia", {
+            universal:"Tener elementos de emergencia a bordo es buena práctica en todos lados, pero no siempre es obligatorio por ley.",
+            RD:"Exigido como parte de la inspección vehicular.",
+            US:"No es obligatorio por ley en la mayoría de los estados, aunque se recomienda.",
+            VE:"Exigido como parte de la inspección vehicular.",
+            OCC:"En la UE, llevar triángulo reflectante (y en varios países también chaleco reflectante) es obligatorio por ley."
+          }),
+        ] },
       { id:"a4", title:"Condiciones difíciles",
-        checklist:["Maneja en zona montañosa","Maneja en hora pico/ciudad congestionada","Maneja cruces sin semáforo"] },
+        checklist:[
+          I("Maneja en zona montañosa"),
+          I("Maneja en hora pico/ciudad congestionada"),
+          I("Maneja cruces sin semáforo"),
+        ] },
       { id:"a5", title:"Eficiencia y mantenimiento",
-        checklist:["Aplica manejo económico","Reconoce señales de que el carro necesita mecánico"] },
+        checklist:[
+          I("Aplica manejo económico"),
+          I("Reconoce señales de que el carro necesita mecánico", {
+            universal:"El mantenimiento preventivo no depende de la ley, pero la inspección vehicular obligatoria sí varía por país.",
+            RD:"Inspección técnica vehicular exigida por INTRANT.",
+            US:"Varía por estado; algunos no exigen inspección periódica.",
+            VE:"Revisión exigida, con cumplimiento variable según la zona.",
+            OCC:"La ITV (o equivalente) es obligatoria y estricta en casi toda la UE."
+          }),
+        ] },
       { id:"a6", title:"Preparación final para el examen",
-        checklist:["Aprueba el simulacro teórico (≥90%)","Aprueba el simulacro práctico completo","Sabe qué esperar el día del examen en INTRANT"] },
+        checklist:[
+          I("Aprueba el simulacro teórico (≥90%)"),
+          I("Aprueba el simulacro práctico completo"),
+          I("Sabe qué esperar el día del examen", {
+            universal:"El contenido de manejo es el mismo; cambia la autoridad que certifica.",
+            RD:"INTRANT.",
+            US:"DMV de cada estado.",
+            VE:"INTT.",
+            OCC:"Autoridad de tránsito de cada país (ej. DGT en España)."
+          }),
+        ] },
     ]
   }
 };
@@ -216,9 +384,11 @@ store.videos = store.videos || {};              // {moduleId: url}  (compartido 
 store.moduleNotes = store.moduleNotes || {};     // {moduleId: text}
 store.stageNotes = store.stageNotes || {};       // {stageKey: text}
 store.currentStage = store.currentStage || "principiante";
+store.country = store.country && COUNTRIES[store.country] ? store.country : "RD";
 saveStore(store);
 
 const el = (sel) => document.querySelector(sel);
+const countrySel = el("#country");
 const profileSel = el("#profile");
 const tabsEl = el("#tabs");
 const modulesEl = el("#modules");
@@ -233,6 +403,16 @@ function toast(msg){
   toastEl.classList.add("show");
   clearTimeout(toastEl._t);
   toastEl._t = setTimeout(()=>toastEl.classList.remove("show"), 1400);
+}
+
+function renderCountries(){
+  countrySel.innerHTML = "";
+  Object.keys(COUNTRIES).forEach(code=>{
+    const o = document.createElement("option");
+    o.value = code; o.textContent = COUNTRIES[code];
+    if(code === store.country) o.selected = true;
+    countrySel.appendChild(o);
+  });
 }
 
 function renderProfiles(){
@@ -346,9 +526,25 @@ function renderModules(){
         renderModules();
         renderProgressBar();
       };
+      const textWrap = document.createElement("div");
+      textWrap.style.minWidth = "0";
       const span = document.createElement("span");
-      span.textContent = item;
-      li.appendChild(cb); li.appendChild(span);
+      span.textContent = item.text;
+      textWrap.appendChild(span);
+
+      const legal = item.legal || {};
+      const countryNote = legal[store.country];
+      if(legal.universal || countryNote){
+        const note = document.createElement("div");
+        note.className = "legal-note";
+        let html = "";
+        if(legal.universal) html += `<span class="ln-tag">Todos</span> ${legal.universal}`;
+        if(countryNote) html += `${html ? "<br>" : ""}<span class="ln-tag ln-country">${COUNTRIES[store.country]}</span> ${countryNote}`;
+        note.innerHTML = html;
+        textWrap.appendChild(note);
+      }
+
+      li.appendChild(cb); li.appendChild(textWrap);
       ul.appendChild(li);
     });
     body.appendChild(ul);
@@ -391,6 +587,7 @@ profileSel.addEventListener("change", ()=>{
 });
 
 function renderAll(){
+  renderCountries();
   renderProfiles();
   renderTabs();
   renderModules();
@@ -398,6 +595,12 @@ function renderAll(){
   renderStageNotes();
 }
 renderAll();
+
+countrySel.addEventListener("change", ()=>{
+  store.country = countrySel.value;
+  saveStore(store);
+  renderAll();
+});
 
 // --- Instalación PWA ---
 let deferredInstall = null;
