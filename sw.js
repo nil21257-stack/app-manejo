@@ -1,4 +1,4 @@
-const CACHE = "app-manejo-v1";
+const CACHE = "app-manejo-v2";
 const SHELL = [
   "./",
   "./index.html",
@@ -21,22 +21,20 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Cache-first para el shell; network-first para todo lo demás (videos quedan fuera del cache del shell).
+// Red primero para el shell (así siempre llega la última versión cuando hay
+// internet); si falla la red (sin conexión), usa lo que haya en caché.
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
   event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req)
-        .then((res) => {
-          if (res.ok && req.url.startsWith(self.location.origin)) {
-            const copy = res.clone();
-            caches.open(CACHE).then((cache) => cache.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => cached);
-    })
+    fetch(req)
+      .then((res) => {
+        if (res.ok && req.url.startsWith(self.location.origin)) {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(req, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(req))
   );
 });
