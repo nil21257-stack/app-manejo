@@ -11,18 +11,23 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="App Manejo">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f6f4ef; --surface:#ffffff; --fg:#17231f; --muted:#5b6b64;
-    --line:#e1ddd2; --accent:#155e52; --accent-fg:#ffffff; --amber:#c98a1f;
-    --ok:#2f7a4f; --pending:#9a9488;
+    --line:#e1ddd2; --accent:#155e52; --accent-soft:#e3efe9; --accent-fg:#ffffff; --amber:#c98a1f;
+    --ok:#2f7a4f; --ok-soft:#e5f3e8; --pending:#9a9488;
+    --font-display:'Manrope',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --font-body:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#0f1715; --surface:#172420; --fg:#eef1ee; --muted:#9cada3;
-      --line:#28362f; --accent:#4fb3a0; --accent-fg:#0b1b17; --amber:#e3a84a;
-      --ok:#5fbf84; --pending:#6b7772;
+      --line:#28362f; --accent:#4fb3a0; --accent-soft:#1c322c; --accent-fg:#0b1b17; --amber:#e3a84a;
+      --ok:#5fbf84; --ok-soft:#163023; --pending:#6b7772;
       color-scheme: dark;
     }
   }
@@ -30,7 +35,7 @@
   html,body{margin:0;padding:0;}
   body{
     background:var(--bg); color:var(--fg);
-    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-family:var(--font-body);
     padding-left:max(16px, env(safe-area-inset-left,0px));
     padding-right:max(16px, env(safe-area-inset-right,0px));
     padding-top:env(safe-area-inset-top,0px);
@@ -44,8 +49,9 @@
     background:var(--bg); padding:14px 0 10px; border-bottom:1px solid var(--line);
   }
   .brand{display:flex; align-items:center; gap:10px;}
-  .brand .logo{width:34px; height:34px; border-radius:9px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent-fg); font-weight:700;}
-  .brand h1{font-size:17px; margin:0; letter-spacing:.2px;}
+  .brand .logo{width:38px; height:38px; border-radius:11px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent-fg); flex:none;}
+  .brand .logo svg{width:22px; height:22px;}
+  .brand h1{font-family:var(--font-display); font-size:19px; font-weight:800; margin:0; letter-spacing:.1px;}
   .brand small{display:block; color:var(--muted); font-size:12px; margin-top:1px;}
   #install-btn{
     margin-left:auto; border:1px solid var(--accent); background:transparent; color:var(--accent);
@@ -62,7 +68,7 @@
   select{flex:1;}
 
   .tabs{display:flex; gap:6px; margin:14px 0 16px; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:4px;}
-  .tab{flex:1; text-align:center; padding:8px 4px; border-radius:7px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; user-select:none;}
+  .tab{flex:1; text-align:center; padding:8px 4px; border-radius:7px; font-family:var(--font-display); font-size:13px; font-weight:700; color:var(--muted); cursor:pointer; user-select:none; transition:background .15s, color .15s;}
   .tab.active{background:var(--accent); color:var(--accent-fg);}
 
   .stage-progress{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
@@ -70,11 +76,15 @@
   .bar > span{display:block; height:100%; background:var(--accent); border-radius:99px; transition:width .25s;}
   .stage-progress b{font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap;}
 
-  .module{background:var(--surface); border:1px solid var(--line); border-radius:12px; margin-bottom:10px; overflow:hidden;}
-  .module-head{display:flex; align-items:center; gap:10px; padding:13px 14px; cursor:pointer;}
-  .module-head .n{width:24px; height:24px; border-radius:7px; background:var(--line); color:var(--muted); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
-  .module-head .title{flex:1; min-width:0; font-size:14.5px; font-weight:600;}
-  .module-head .count{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .module{background:var(--surface); border:1px solid var(--line); border-radius:14px; margin-bottom:10px; overflow:hidden; transition:border-color .2s, background .2s;}
+  .module.complete{border-color:var(--ok); background:var(--ok-soft);}
+  .module-head{display:flex; align-items:center; gap:11px; padding:13px 14px; cursor:pointer;}
+  .module-head .icn{width:36px; height:36px; border-radius:10px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; flex:none; transition:background .2s, color .2s;}
+  .module-head .icn svg{width:20px; height:20px;}
+  .module.complete .module-head .icn{background:var(--ok); color:var(--accent-fg);}
+  .module-head .title{flex:1; min-width:0; font-family:var(--font-display); font-size:15px; font-weight:700;}
+  .module-head .count{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; display:flex; align-items:center; gap:4px;}
+  .module.complete .module-head .count{color:var(--ok); font-weight:700;}
   .chev{transition:transform .2s; color:var(--muted); flex:none;}
   .module.open .chev{transform:rotate(90deg);}
   .module-body{display:none; padding:0 14px 14px; border-top:1px solid var(--line);}
@@ -112,13 +122,14 @@
     font-size:13px; text-align:center; transform:translateY(80px); opacity:0; transition:all .25s; z-index:50;
   }
   .toast.show{transform:translateY(0); opacity:1;}
+  .toast.celebrate{background:var(--ok);}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div class="brand">
-      <div class="logo">AM</div>
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.3"/><line x1="12" y1="4" x2="12" y2="9.7"/><line x1="12" y1="14.3" x2="7.2" y2="18.5"/><line x1="12" y1="14.3" x2="16.8" y2="18.5"/></svg></div>
       <div>
         <h1>App Manejo</h1>
         <small id="stage-sub">Guía para aprender a conducir</small>
@@ -154,6 +165,31 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// Íconos de línea (24x24, trazo currentColor) para los encabezados de módulo.
+const ICONS = {
+  wheel:   `<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.3"/><line x1="12" y1="4" x2="12" y2="9.7"/><line x1="12" y1="14.3" x2="7.2" y2="18.5"/><line x1="12" y1="14.3" x2="16.8" y2="18.5"/>`,
+  key:     `<circle cx="7" cy="12" r="3.2"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="16" y1="12" x2="16" y2="15"/><line x1="19" y1="12" x2="19" y2="14.5"/>`,
+  sign:    `<path d="M12 4 L21 19 L3 19 Z"/><line x1="12" y1="10" x2="12" y2="14.5"/><circle cx="12" cy="16.8" r="0.9" fill="currentColor" stroke="none"/>`,
+  light:   `<rect x="9" y="3" width="6" height="16" rx="3"/><circle cx="12" cy="7" r="1.3"/><circle cx="12" cy="11" r="1.3"/><circle cx="12" cy="15" r="1.3"/><line x1="12" y1="19" x2="12" y2="21"/>`,
+  turn:    `<path d="M5 15 Q5 6 13 6 H17"/><path d="M14 3 L18 6 L14 9"/>`,
+  idcard:  `<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M5.5 16 Q8 13.2 10.5 16"/><line x1="13" y1="9" x2="18" y2="9"/><line x1="13" y1="13" x2="18" y2="13"/>`,
+  city:    `<rect x="3" y="10" width="5" height="10"/><rect x="9.5" y="5" width="5" height="15"/><rect x="16" y="13" width="5" height="7"/>`,
+  parking: `<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M9.5 16.5V7.5h3.3a2.6 2.6 0 0 1 0 5.2H9.5" fill="none"/>`,
+  flag:    `<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 12l2.3 2.3L16 9"/><line x1="8" y1="17" x2="16" y2="17"/>`,
+  people:  `<circle cx="8.5" cy="8" r="2.6"/><path d="M3.5 19c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="17" cy="9" r="2.1"/><path d="M14.5 19c0-2.4 1.7-4.2 4-4.2"/>`,
+  weather: `<path d="M7 18h10a4 4 0 0 0 .4-8 5.5 5.5 0 0 0-10.6 1.3A3.8 3.8 0 0 0 7 18Z"/>`,
+  doc:     `<path d="M7 3h7l4 4v14H7Z"/><path d="M14 3v4h4"/><line x1="9.5" y1="12" x2="15" y2="12"/><line x1="9.5" y1="15.5" x2="15" y2="15.5"/>`,
+  shield:  `<path d="M12 3l7 3v6c0 5-3.5 7.5-7 9-3.5-1.5-7-4-7-9V6Z"/><path d="M9 12l2.2 2.2L15.5 9.5"/>`,
+  highway: `<path d="M9 21 L10.5 3 M15 21 L13.5 3"/><line x1="12" y1="4" x2="12" y2="7"/><line x1="12" y1="10.5" x2="12" y2="13.5"/><line x1="12" y1="17" x2="12" y2="20"/>`,
+  alert:   `<rect x="7" y="9" width="10" height="6" rx="1.5"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/><line x1="12" y1="4" x2="12" y2="2.3"/><line x1="5" y1="18" x2="19" y2="18"/>`,
+  mountain:`<path d="M3 19 L9 9 L13 15 L16 11 L21 19 Z"/>`,
+  wrench:  `<path d="M20 5.5a4 4 0 0 1-5.4 5.4L8 17.5a2 2 0 1 1-2.8-2.8l6.6-6.6A4 4 0 0 1 17.2 3l-2.6 2.6 1.8 1.8L19 4.8Z"/>`,
+  medal:   `<circle cx="12" cy="9" r="5.5"/><path d="M9 14l-1.5 6.5L12 18l4.5 2.5L15 14"/><path d="M9.5 9l1.8 1.8L15 7.3"/>`,
+};
+function iconSvg(name){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[name] || ICONS.wheel}</svg>`;
+}
+
 // Países soportados para las notas legales comparadas.
 const COUNTRIES = {
   RD: "República Dominicana",
@@ -174,7 +210,7 @@ const CURRICULUM = {
   principiante: {
     label: "Principiante",
     modules: [
-      { id:"p1", title:"El vehículo por dentro",
+      { id:"p1", title:"El vehículo por dentro", icon:"wheel",
         checklist:[
           I("Identifica volante, pedales y palanca/automático",
             "Siéntate con el carro apagado y toca cada pedal con el pie (embrague si es manual, freno, acelerador). Ubica la palanca de cambios o el selector automático (P/R/N/D) antes de intentar arrancar."),
@@ -191,7 +227,7 @@ const CURRICULUM = {
               OCC:"Es obligatorio en toda la Unión Europea, incluidos los asientos traseros."
             }),
         ] },
-      { id:"p2", title:"Antes de arrancar",
+      { id:"p2", title:"Antes de arrancar", icon:"key",
         checklist:[
           I("Completa el checklist pre-manejo (combustible, luces, llantas)",
             "Camina alrededor del carro antes de subir. Verifica que las 4 llantas no estén visiblemente bajas, prueba las luces direccionales y de freno (pide que alguien confirme desde afuera si es tu primera vez), y confirma que el tanque tenga combustible suficiente para toda la sesión."),
@@ -200,7 +236,7 @@ const CURRICULUM = {
           I("Arranca con la posición correcta al volante",
             "Espalda pegada al asiento, manos en las posiciones 9 y 3 del volante, brazos ligeramente doblados. Si tienes que estirarte para alcanzar el volante, el asiento está muy atrás."),
         ] },
-      { id:"p3", title:"Señales de tránsito",
+      { id:"p3", title:"Señales de tránsito", icon:"sign",
         checklist:[
           I("Reconoce señales reglamentarias",
             "Identifica las formas base: triángulo = peligro/advertencia, octágono = alto total, círculo con borde rojo = prohibición. Practica nombrarlas en voz alta cuando las veas manejando, antes de reaccionar a ellas.",
@@ -223,7 +259,7 @@ const CURRICULUM = {
           I("Responde correctamente a los semáforos",
             "Verde: avanza si está despejado. Ámbar: detente si puedes hacerlo con seguridad, no aceleres para 'ganarle'. Rojo: alto total, incluso si no hay tráfico a la vista."),
         ] },
-      { id:"p4", title:"Normas básicas de circulación",
+      { id:"p4", title:"Normas básicas de circulación", icon:"light",
         checklist:[
           I("Respeta el derecho de vía",
             "Antes de avanzar en un cruce, mira a ambos lados aunque tengas el paso — otro conductor puede no respetarlo. Ante la duda, cede tú primero.",
@@ -246,7 +282,7 @@ const CURRICULUM = {
           I("Usa direccionales y luces correctamente",
             "Enciende la direccional al menos 3 segundos antes de girar o cambiar de carril — no al mismo tiempo que haces el movimiento."),
         ] },
-      { id:"p5", title:"Maniobras básicas en espacio controlado",
+      { id:"p5", title:"Maniobras básicas en espacio controlado", icon:"turn",
         checklist:[
           I("Arranca y detiene el vehículo con suavidad",
             "Suelta el freno de forma progresiva mientras acelera poco a poco. Para frenar, reduce la presión gradualmente hasta casi detenerte, y presiona firme solo al final."),
@@ -255,7 +291,7 @@ const CURRICULUM = {
           I("Revisa el punto ciego antes de moverse",
             "Gira la cabeza hacia el hombro del lado al que te vas a mover — los espejos no cubren todo el ángulo. Hazlo siempre, no solo cuando 'parece' necesario."),
         ] },
-      { id:"p6", title:"Marco legal: carnet de aprendizaje",
+      { id:"p6", title:"Marco legal: carnet de aprendizaje", icon:"idcard",
         checklist:[
           I("Explica qué es el carnet de aprendizaje",
             "Antes de tu primera práctica, verifica qué documento necesitas tramitar en tu país (ver nota abajo) y llévalo siempre contigo junto con tu identificación.",
@@ -287,7 +323,7 @@ const CURRICULUM = {
   intermedio: {
     label: "Intermedio",
     modules: [
-      { id:"i1", title:"Manejo en vía urbana",
+      { id:"i1", title:"Manejo en vía urbana", icon:"city",
         checklist:[
           I("Cruza intersecciones con seguridad",
             "Reduce la velocidad antes de llegar, mira en las cuatro direcciones aunque tengas el paso, y nunca entres a una intersección si no vas a poder salir de ella del otro lado."),
@@ -296,7 +332,7 @@ const CURRICULUM = {
           I("Cambia de carril verificando espejos y punto ciego",
             "En este orden: espejo retrovisor, espejo lateral del lado al que te mueves, direccional, y por último un vistazo al punto ciego antes de girar el volante."),
         ] },
-      { id:"i2", title:"Estacionamiento",
+      { id:"i2", title:"Estacionamiento", icon:"parking",
         checklist:[
           I("Estaciona en paralelo",
             "Alinéate junto al carro de enfrente del espacio. Retrocede girando el volante hacia el espacio cuando tu espejo quede a la altura de su parachoques trasero, y endereza cuando el carro ya esté en diagonal dentro del espacio."),
@@ -305,7 +341,7 @@ const CURRICULUM = {
           I("Estaciona en línea/diagonal",
             "Entra despacio alineando el carro con las líneas del espacio antes de enderezar por completo, usando los espejos para mantener distancia pareja a ambos lados."),
         ] },
-      { id:"i3", title:"Maniobras del examen práctico",
+      { id:"i3", title:"Maniobras del examen práctico", icon:"flag",
         checklist:[
           I("Usa direccionales en el momento correcto",
             "Actívala 3 segundos antes de cada giro o cambio de carril, sin excepción, incluso cuando creas que no hay nadie cerca."),
@@ -316,7 +352,7 @@ const CURRICULUM = {
           I("Arranca en pendiente sin retroceder",
             "Mantén el freno mientras cambias al acelerador; suelta el freno justo cuando sientas que el carro 'muerde' para avanzar."),
         ] },
-      { id:"i4", title:"Interacción con otros actores",
+      { id:"i4", title:"Interacción con otros actores", icon:"people",
         checklist:[
           I("Guarda distancia de motociclistas",
             "Dales el carril completo al adelantarlos, nunca intentes compartir el mismo carril con una moto, y revisa dos veces el punto ciego — son más difíciles de ver que un carro."),
@@ -331,7 +367,7 @@ const CURRICULUM = {
               OCC:"Varios países de la UE, como España, exigen por ley una distancia mínima de 1.5 metros al adelantar un ciclista."
             }),
         ] },
-      { id:"i5", title:"Condiciones variables",
+      { id:"i5", title:"Condiciones variables", icon:"weather",
         checklist:[
           I("Maneja de noche con confianza",
             "Usa las luces bajas en la ciudad y las altas solo en carretera sin tráfico de frente — cámbialas a bajas en cuanto veas acercarse las luces de otro vehículo.",
@@ -346,7 +382,7 @@ const CURRICULUM = {
           I("Identifica y evita baches a tiempo",
             "Mira unos 10-15 segundos adelante en vez de justo frente al carro, para detectar baches con tiempo de reaccionar sin frenar bruscamente ni invadir otro carril sin verificar."),
         ] },
-      { id:"i6", title:"Documentación y responsabilidad",
+      { id:"i6", title:"Documentación y responsabilidad", icon:"doc",
         checklist:[
           I("Sabe qué documentos llevar",
             "Mantén una copia física o digital de tus documentos siempre en el carro, en un lugar fijo donde los puedas encontrar rápido.",
@@ -372,7 +408,7 @@ const CURRICULUM = {
   avanzado: {
     label: "Avanzado",
     modules: [
-      { id:"a1", title:"Manejo defensivo",
+      { id:"a1", title:"Manejo defensivo", icon:"shield",
         checklist:[
           I("Anticipa riesgos antes de que ocurran",
             "Observa más allá del carro de enfrente — las luces de freno dos carros adelante, un peatón acercándose a la acera — para reaccionar antes de que se vuelva una emergencia."),
@@ -381,7 +417,7 @@ const CURRICULUM = {
           I("Mantiene la calma ante conductores agresivos",
             "No respondas a bocinazos o gestos agresivos con los tuyos. Si alguien te sigue muy de cerca, cambia de carril con calma y déjalo pasar."),
         ] },
-      { id:"a2", title:"Vías de alta velocidad",
+      { id:"a2", title:"Vías de alta velocidad", icon:"highway",
         checklist:[
           I("Se incorpora a la autopista con seguridad",
             "Usa el carril de aceleración para igualar tu velocidad a la del tráfico de la autopista antes de incorporarte, no después.",
@@ -396,7 +432,7 @@ const CURRICULUM = {
           I("Usa el carril izquierdo correctamente",
             "Úsalo solo para adelantar, no para circular de forma constante — vuelve al carril derecho apenas termines la maniobra."),
         ] },
-      { id:"a3", title:"Emergencias",
+      { id:"a3", title:"Emergencias", icon:"alert",
         checklist:[
           I("Sabe qué hacer ante un pinchazo",
             "Sujeta firme el volante, no frenes de golpe, reduce la velocidad gradualmente y orilla el carro lejos del tráfico antes de detenerte por completo."),
@@ -413,7 +449,7 @@ const CURRICULUM = {
               OCC:"En la Unión Europea, llevar un triángulo reflectante (y en varios países también un chaleco reflectante) es obligatorio por ley."
             }),
         ] },
-      { id:"a4", title:"Condiciones difíciles",
+      { id:"a4", title:"Condiciones difíciles", icon:"mountain",
         checklist:[
           I("Maneja en zona montañosa",
             "En bajadas largas, usa una marcha baja en vez de frenar constantemente, para evitar que los frenos se sobrecalienten."),
@@ -422,7 +458,7 @@ const CURRICULUM = {
           I("Maneja cruces sin semáforo",
             "Reduce la velocidad al acercarte, haz contacto visual con otros conductores cuando sea posible, y nunca asumas que el otro te va a ceder el paso."),
         ] },
-      { id:"a5", title:"Eficiencia y mantenimiento",
+      { id:"a5", title:"Eficiencia y mantenimiento", icon:"wrench",
         checklist:[
           I("Aplica manejo económico",
             "Acelera y frena de forma progresiva, mantén una velocidad constante cuando puedas, y evita dejar el motor encendido sin necesidad."),
@@ -435,7 +471,7 @@ const CURRICULUM = {
               OCC:"La ITV (o su equivalente) es obligatoria y estricta en casi toda la Unión Europea."
             }),
         ] },
-      { id:"a6", title:"Preparación final para el examen",
+      { id:"a6", title:"Preparación final para el examen", icon:"medal",
         checklist:[
           I("Aprueba el simulacro teórico (≥90%)",
             "Practica con preguntas de examen reales varias veces hasta superar consistentemente el puntaje mínimo, no solo una vez."),
@@ -483,11 +519,12 @@ const barLabel = el("#stage-bar-label");
 const stageNotesEl = el("#stage-notes");
 const toastEl = el("#toast");
 
-function toast(msg){
+function toast(msg, celebrate){
   toastEl.textContent = msg;
+  toastEl.classList.toggle("celebrate", !!celebrate);
   toastEl.classList.add("show");
   clearTimeout(toastEl._t);
-  toastEl._t = setTimeout(()=>toastEl.classList.remove("show"), 1400);
+  toastEl._t = setTimeout(()=>{ toastEl.classList.remove("show"); toastEl.classList.remove("celebrate"); }, celebrate ? 2200 : 1400);
 }
 
 function renderCountries(){
@@ -556,16 +593,17 @@ function renderModules(){
   stage.modules.forEach((m, idx)=>{
     const prog = getProgressFor(store.currentProfile, m.id);
     const doneCount = m.checklist.filter((_,i)=>prog[i]).length;
+    const isComplete = doneCount === m.checklist.length;
 
     const wrap = document.createElement("div");
-    wrap.className = "module" + (openModule===m.id ? " open" : "");
+    wrap.className = "module" + (openModule===m.id ? " open" : "") + (isComplete ? " complete" : "");
 
     const head = document.createElement("div");
     head.className = "module-head";
     head.innerHTML = `
-      <div class="n">${idx+1}</div>
+      <div class="icn">${iconSvg(m.icon)}</div>
       <div class="title">${m.title}</div>
-      <div class="count">${doneCount}/${m.checklist.length}</div>
+      <div class="count">${isComplete ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>` : ""}${doneCount}/${m.checklist.length}</div>
       <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     `;
     head.onclick = ()=>{ openModule = (openModule===m.id ? null : m.id); renderModules(); };
@@ -606,10 +644,13 @@ function renderModules(){
       cb.checked = !!prog[i];
       cb.id = `cb-${m.id}-${i}`;
       cb.onchange = ()=>{
+        const wasComplete = m.checklist.every((_,k)=>prog[k]);
         prog[i] = cb.checked;
+        const isNowComplete = m.checklist.every((_,k)=>prog[k]);
         saveStore(store);
         renderModules();
         renderProgressBar();
+        if(isNowComplete && !wasComplete) toast(`Módulo dominado: ${m.title}`, true);
       };
       const textWrap = document.createElement("div");
       textWrap.style.minWidth = "0";
