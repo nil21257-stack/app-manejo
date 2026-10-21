@@ -95,7 +95,8 @@
   ul.checklist input[type=checkbox]{width:18px; height:18px; margin-top:1px; accent-color:var(--accent); flex:none;}
   ul.checklist li.checked > div > span{color:var(--muted); text-decoration:line-through;}
   ul.checklist li > div{flex:1; min-width:0;}
-  .legal-note{font-size:12px; color:var(--muted); line-height:1.45; margin-top:4px; padding:7px 8px; background:var(--bg); border-left:2px solid var(--amber); border-radius:4px;}
+  .howto-note{font-size:13px; color:var(--fg); line-height:1.5; margin-top:5px; padding:8px 9px; background:var(--bg); border-left:2px solid var(--accent); border-radius:4px;}
+  .legal-note{font-size:12px; color:var(--muted); line-height:1.45; margin-top:6px; padding:7px 8px; background:var(--bg); border-left:2px solid var(--amber); border-radius:4px;}
 
   .notes{margin-top:12px;}
   .notes .vb-label{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; display:block;}
@@ -164,8 +165,10 @@ const COUNTRIES = {
 // Cada ítem del checklist es {text, tips}. "tips" es opcional y solo trae las
 // claves de país (RD/US/VE/OCC) donde de verdad hay un consejo legal que dar;
 // si un ítem no tiene nada especial por país (es una habilidad física, igual
-// en cualquier lado), simplemente no lleva tips y no se muestra ninguna nota.
-function I(text, tips){ return { text, tips: tips || null }; }
+// en cualquier lado), simplemente no lleva tips y no se muestra ninguna nota legal.
+// "howto" SIEMPRE está presente: es la guía real, en tono neutral, pensada para
+// que cualquier persona (no solo la familia del creador) sepa cómo hacer ese paso.
+function I(text, howto, tips){ return { text, howto, tips: tips || null }; }
 
 const CURRICULUM = {
   principiante: {
@@ -173,82 +176,111 @@ const CURRICULUM = {
     modules: [
       { id:"p1", title:"El vehículo por dentro",
         checklist:[
-          I("Identifica volante, pedales y palanca/automático"),
-          I("Reconoce el tablero e indicadores"),
-          I("Ajusta espejos y asiento"),
-          I("Se abrocha el cinturón antes de todo", {
-            RD:"Es obligatorio por la Ley 63-17 para el conductor y todos los pasajeros — acostúmbralo desde la primera lección.",
-            US:"Es obligatorio en 49 de los 50 estados; solo New Hampshire no lo exige por ley a los adultos.",
-            VE:"Es obligatorio por la Ley de Tránsito Terrestre para todos los ocupantes, no solo el conductor.",
-            OCC:"Es obligatorio en toda la Unión Europea, incluidos los asientos traseros."
-          }),
+          I("Identifica volante, pedales y palanca/automático",
+            "Siéntate con el carro apagado y toca cada pedal con el pie (embrague si es manual, freno, acelerador). Ubica la palanca de cambios o el selector automático (P/R/N/D) antes de intentar arrancar."),
+          I("Reconoce el tablero e indicadores",
+            "Gira la llave o pulsa el botón de encendido sin arrancar el motor y observa qué luces se prenden (es normal por unos segundos). Identifica el velocímetro, el indicador de combustible y la luz de 'check engine' — si una luz queda encendida después de arrancar, no es normal."),
+          I("Ajusta espejos y asiento",
+            "Ajusta primero el asiento, después los espejos. El retrovisor central debe mostrar todo el vidrio trasero sin mover la cabeza; los espejos laterales, apenas el borde de tu propio carro — si ves mucho carro propio, ajústalos más hacia afuera."),
+          I("Se abrocha el cinturón antes de todo",
+            "Abróchalo antes de arrancar, nunca después. Debe quedar ajustado sobre la cadera y el hombro, nunca bajo el brazo ni detrás de la espalda.",
+            {
+              RD:"Es obligatorio por la Ley 63-17 para el conductor y todos los pasajeros.",
+              US:"Es obligatorio en 49 de los 50 estados; solo New Hampshire no lo exige por ley a los adultos.",
+              VE:"Es obligatorio por la Ley de Tránsito Terrestre para todos los ocupantes, no solo el conductor.",
+              OCC:"Es obligatorio en toda la Unión Europea, incluidos los asientos traseros."
+            }),
         ] },
       { id:"p2", title:"Antes de arrancar",
         checklist:[
-          I("Completa el checklist pre-manejo (combustible, luces, llantas)"),
-          I("Revisa frenos de mano y espejos"),
-          I("Arranca con la posición correcta al volante"),
+          I("Completa el checklist pre-manejo (combustible, luces, llantas)",
+            "Camina alrededor del carro antes de subir. Verifica que las 4 llantas no estén visiblemente bajas, prueba las luces direccionales y de freno (pide que alguien confirme desde afuera si es tu primera vez), y confirma que el tanque tenga combustible suficiente para toda la sesión."),
+          I("Revisa frenos de mano y espejos",
+            "Con el carro apagado, hala el freno de mano y confirma que sostiene el vehículo en una pendiente leve. Ajusta los espejos antes de arrancar, nunca en movimiento."),
+          I("Arranca con la posición correcta al volante",
+            "Espalda pegada al asiento, manos en las posiciones 9 y 3 del volante, brazos ligeramente doblados. Si tienes que estirarte para alcanzar el volante, el asiento está muy atrás."),
         ] },
       { id:"p3", title:"Señales de tránsito",
         checklist:[
-          I("Reconoce señales reglamentarias", {
-            RD:"La señalización dominicana sigue el modelo MUTCD de Estados Unidos (RD no firmó el Convenio de Viena) — las formas y colores te resultarán familiares si alguna vez manejas allá.",
-            US:"La señalización de EE.UU. se rige por el MUTCD; República Dominicana sigue un modelo muy similar, así que comparten casi el mismo lenguaje visual.",
-            VE:"Venezuela es parte del Convenio de Viena sobre Señalización (tratado de la ONU), el mismo que sigue la mayoría de Europa occidental — reconocerás símbolos parecidos si cruzas a esos países.",
-            OCC:"La mayoría de Europa occidental sigue el Convenio de Viena, igual que Venezuela — la señalización entre ambos es muy parecida, a diferencia de la de RD/EE.UU."
-          }),
-          I("Reconoce señales preventivas e informativas", {
-            RD:"Mismo estándar MUTCD que las reglamentarias — ver la nota del ítem anterior.",
-            US:"Mismo estándar MUTCD que las reglamentarias — ver la nota del ítem anterior.",
-            VE:"Sigue también el Convenio de Viena, compartido con la mayoría de Europa occidental.",
-            OCC:"Sigue también el Convenio de Viena, compartido con Venezuela."
-          }),
-          I("Entiende las líneas y marcas viales"),
-          I("Responde correctamente a los semáforos"),
+          I("Reconoce señales reglamentarias",
+            "Identifica las formas base: triángulo = peligro/advertencia, octágono = alto total, círculo con borde rojo = prohibición. Practica nombrarlas en voz alta cuando las veas manejando, antes de reaccionar a ellas.",
+            {
+              RD:"La señalización dominicana sigue el modelo MUTCD de Estados Unidos (RD no firmó el Convenio de Viena) — te resultará familiar si alguna vez manejas allá.",
+              US:"Se rige por el MUTCD; República Dominicana sigue un modelo muy similar, así que comparten casi el mismo lenguaje visual.",
+              VE:"Venezuela es parte del Convenio de Viena sobre Señalización (tratado de la ONU), el mismo que sigue la mayoría de Europa occidental — reconocerás símbolos parecidos si cruzas a esos países.",
+              OCC:"La mayoría de Europa occidental sigue el Convenio de Viena, igual que Venezuela — señalización muy parecida entre ambos, distinta a la de RD/EE.UU."
+            }),
+          I("Reconoce señales preventivas e informativas",
+            "Las preventivas (forma de rombo en muchos países) avisan algo antes de que pase — una curva, un cruce escolar. Las informativas (rectangulares) te orientan: nombres de calles, distancias, servicios.",
+            {
+              RD:"Mismo estándar MUTCD que las reglamentarias — ver la nota del ítem anterior.",
+              US:"Mismo estándar MUTCD que las reglamentarias — ver la nota del ítem anterior.",
+              VE:"Sigue también el Convenio de Viena, compartido con la mayoría de Europa occidental.",
+              OCC:"Sigue también el Convenio de Viena, compartido con Venezuela."
+            }),
+          I("Entiende las líneas y marcas viales",
+            "Línea blanca continua: no cambiar de carril. Línea blanca discontinua: se puede cambiar con cuidado. Línea amarilla: separa sentidos opuestos. Doble línea continua: ningún sentido puede cruzar para adelantar."),
+          I("Responde correctamente a los semáforos",
+            "Verde: avanza si está despejado. Ámbar: detente si puedes hacerlo con seguridad, no aceleres para 'ganarle'. Rojo: alto total, incluso si no hay tráfico a la vista."),
         ] },
       { id:"p4", title:"Normas básicas de circulación",
         checklist:[
-          I("Respeta el derecho de vía", {
-            RD:"En cruces sin señalización clara, cede el paso al vehículo que viene por tu derecha; en la práctica, confirma siempre visualmente, no todos respetan la norma.",
-            US:"En un cruce de 4 vías sin semáforo ('4-way stop'), el orden es: pasa quien llegó primero; si llegan igual, cede el paso al que está a tu derecha. Es una regla muy marcada en EE.UU., más que en RD.",
-            VE:"Cede el paso al vehículo que viene por tu derecha cuando no hay señal que indique prioridad.",
-            OCC:"En buena parte de Europa occidental rige la 'prioridad a la derecha': sin señal, cede el paso a quien viene por tu derecha."
-          }),
-          I("Mantiene el límite de velocidad", {
-            RD:"Los límites están en km/h.",
-            US:"Los límites están en millas por hora (mph), no en km/h — si aprendiste pensando en km/h, ten cuidado con la conversión.",
-            VE:"Los límites están en km/h.",
-            OCC:"Los límites están en km/h, excepto en el Reino Unido, que usa mph."
-          }),
-          I("Guarda distancia de seguimiento"),
-          I("Usa direccionales y luces correctamente"),
+          I("Respeta el derecho de vía",
+            "Antes de avanzar en un cruce, mira a ambos lados aunque tengas el paso — otro conductor puede no respetarlo. Ante la duda, cede tú primero.",
+            {
+              RD:"En cruces sin señalización clara, cede el paso al vehículo que viene por tu derecha; confirma siempre visualmente, no todos respetan la norma.",
+              US:"En un cruce de 4 vías sin semáforo ('4-way stop'), pasa quien llegó primero; si llegan igual, cede el paso al que está a tu derecha — es una regla muy marcada en EE.UU.",
+              VE:"Cede el paso al vehículo que viene por tu derecha cuando no hay señal que indique prioridad.",
+              OCC:"En buena parte de Europa occidental rige la 'prioridad a la derecha': sin señal, cede el paso a quien viene por tu derecha."
+            }),
+          I("Mantiene el límite de velocidad",
+            "Revisa el letrero de velocidad al entrar a una zona nueva (escuela, residencial, autopista) y ajusta tu velocidad antes de llegar al límite, no después.",
+            {
+              RD:"Los límites están en km/h.",
+              US:"Los límites están en millas por hora (mph), no en km/h — si aprendiste pensando en km/h, ten cuidado con la conversión.",
+              VE:"Los límites están en km/h.",
+              OCC:"Los límites están en km/h, excepto en el Reino Unido, que usa mph."
+            }),
+          I("Guarda distancia de seguimiento",
+            "Cuenta 2-3 segundos entre que el carro de adelante pasa un punto fijo (un poste, una señal) y tú pasas ese mismo punto. Si cuentas menos, estás muy cerca."),
+          I("Usa direccionales y luces correctamente",
+            "Enciende la direccional al menos 3 segundos antes de girar o cambiar de carril — no al mismo tiempo que haces el movimiento."),
         ] },
       { id:"p5", title:"Maniobras básicas en espacio controlado",
         checklist:[
-          I("Arranca y detiene el vehículo con suavidad"),
-          I("Gira a baja velocidad usando espejos"),
-          I("Revisa el punto ciego antes de moverse"),
+          I("Arranca y detiene el vehículo con suavidad",
+            "Suelta el freno de forma progresiva mientras acelera poco a poco. Para frenar, reduce la presión gradualmente hasta casi detenerte, y presiona firme solo al final."),
+          I("Gira a baja velocidad usando espejos",
+            "Antes de girar, revisa el espejo del lado hacia el que vas a girar y confirma el punto ciego con un vistazo rápido, incluso a baja velocidad."),
+          I("Revisa el punto ciego antes de moverse",
+            "Gira la cabeza hacia el hombro del lado al que te vas a mover — los espejos no cubren todo el ángulo. Hazlo siempre, no solo cuando 'parece' necesario."),
         ] },
       { id:"p6", title:"Marco legal: carnet de aprendizaje",
         checklist:[
-          I("Explica qué es el carnet de aprendizaje", {
-            RD:"Se llama carnet de aprendizaje, es válido por 6 meses, y durante ese tiempo debes ir siempre con un acompañante con licencia de tu misma categoría. Edad mínima: 18 años.",
-            US:"Se llama 'learner's permit'; la edad mínima y las reglas del acompañante varían por estado — algunos lo permiten desde los 14-15 años.",
-            VE:"Lo gestiona el INTT (Instituto Nacional de Transporte Terrestre). Edad mínima: 18 años.",
-            OCC:"Varios países de la UE tienen 'conducción acompañada' desde los 15-17 años, con un acompañante que debe tener varios años de experiencia (ej. 5 en Francia)."
-          }),
-          I("Conoce las categorías de licencia (1, 2, 3, 4)", {
-            RD:"1 motocicletas, 2 vehículos ligeros, 3-4 pesados, según la Ley 63-17.",
-            US:"No existen esas categorías numeradas; cada estado tiene su propio sistema (comúnmente Class D para carro, Class M para moto, CDL para comercial).",
-            VE:"Clasificación propia bajo la Ley de Tránsito Terrestre, distinta a la de RD.",
-            OCC:"La Unión Europea usa categorías armonizadas entre países: AM, A1, A2, A, B, C, D, etc."
-          }),
-          I("Sabe que debe ir siempre con acompañante con licencia", {
-            RD:"Obligatorio durante los 6 meses del carnet de aprendizaje, con un acompañante de tu misma categoría.",
-            US:"Varía por estado — suele ser un período de manejo supervisado, a veces con horas mínimas que hay que registrar.",
-            VE:"Exigido por el INTT mientras se tiene el permiso provisional.",
-            OCC:"En los países con conducción acompañada, el acompañante debe cumplir un mínimo de años de experiencia al volante."
-          }),
+          I("Explica qué es el carnet de aprendizaje",
+            "Antes de tu primera práctica, verifica qué documento necesitas tramitar en tu país (ver nota abajo) y llévalo siempre contigo junto con tu identificación.",
+            {
+              RD:"Se llama carnet de aprendizaje, es válido por 6 meses, y exige ir siempre con un acompañante con licencia de tu misma categoría. Edad mínima: 18 años.",
+              US:"Se llama 'learner's permit'; la edad mínima y las reglas del acompañante varían por estado — algunos lo permiten desde los 14-15 años.",
+              VE:"Lo gestiona el INTT (Instituto Nacional de Transporte Terrestre). Edad mínima: 18 años.",
+              OCC:"Varios países de la UE tienen 'conducción acompañada' desde los 15-17 años, con un acompañante que debe tener varios años de experiencia (ej. 5 en Francia)."
+            }),
+          I("Conoce las categorías de licencia (1, 2, 3, 4)",
+            "Identifica qué categoría corresponde al vehículo con el que estás practicando (moto, carro, pesado) — determina qué puedes manejar legalmente.",
+            {
+              RD:"1 motocicletas, 2 vehículos ligeros, 3-4 pesados, según la Ley 63-17.",
+              US:"No existen categorías numeradas; cada estado tiene su propio sistema (comúnmente Class D para carro, Class M para moto, CDL para comercial).",
+              VE:"Clasificación propia bajo la Ley de Tránsito Terrestre, distinta a la de RD.",
+              OCC:"La Unión Europea usa categorías armonizadas entre países: AM, A1, A2, A, B, C, D, etc."
+            }),
+          I("Sabe que debe ir siempre con acompañante con licencia",
+            "El acompañante debe ir en el asiento del copiloto, atento y sin distraerse con el teléfono — su función es poder reaccionar o guiar si hace falta.",
+            {
+              RD:"Obligatorio durante los 6 meses del carnet de aprendizaje, con un acompañante de tu misma categoría.",
+              US:"Varía por estado — suele ser un período de manejo supervisado, a veces con horas mínimas que hay que registrar.",
+              VE:"Exigido por el INTT mientras se tiene el permiso provisional.",
+              OCC:"En los países con conducción acompañada, el acompañante debe cumplir un mínimo de años de experiencia al volante."
+            }),
         ] },
     ]
   },
@@ -257,60 +289,83 @@ const CURRICULUM = {
     modules: [
       { id:"i1", title:"Manejo en vía urbana",
         checklist:[
-          I("Cruza intersecciones con seguridad"),
-          I("Maneja rotondas/glorietas"),
-          I("Cambia de carril verificando espejos y punto ciego"),
+          I("Cruza intersecciones con seguridad",
+            "Reduce la velocidad antes de llegar, mira en las cuatro direcciones aunque tengas el paso, y nunca entres a una intersección si no vas a poder salir de ella del otro lado."),
+          I("Maneja rotondas/glorietas",
+            "Antes de entrar, cede el paso a quien ya está circulando dentro de la rotonda. Usa la direccional derecha justo antes de salir, no al entrar."),
+          I("Cambia de carril verificando espejos y punto ciego",
+            "En este orden: espejo retrovisor, espejo lateral del lado al que te mueves, direccional, y por último un vistazo al punto ciego antes de girar el volante."),
         ] },
       { id:"i2", title:"Estacionamiento",
         checklist:[
-          I("Estaciona en paralelo"),
-          I("Estaciona en reversa"),
-          I("Estaciona en línea/diagonal"),
+          I("Estaciona en paralelo",
+            "Alinéate junto al carro de enfrente del espacio. Retrocede girando el volante hacia el espacio cuando tu espejo quede a la altura de su parachoques trasero, y endereza cuando el carro ya esté en diagonal dentro del espacio."),
+          I("Estaciona en reversa",
+            "Ubica el espacio, gira la cabeza (no solo los espejos) mientras retrocedes lentamente, y corrige con pequeños ajustes del volante en vez de uno grande."),
+          I("Estaciona en línea/diagonal",
+            "Entra despacio alineando el carro con las líneas del espacio antes de enderezar por completo, usando los espejos para mantener distancia pareja a ambos lados."),
         ] },
       { id:"i3", title:"Maniobras del examen práctico",
         checklist:[
-          I("Usa direccionales en el momento correcto"),
-          I("Controla velocidad en curvas"),
-          I("Frena de forma controlada"),
-          I("Arranca en pendiente sin retroceder"),
+          I("Usa direccionales en el momento correcto",
+            "Actívala 3 segundos antes de cada giro o cambio de carril, sin excepción, incluso cuando creas que no hay nadie cerca."),
+          I("Controla velocidad en curvas",
+            "Reduce la velocidad antes de entrar a la curva, no durante — acelerar en medio de un giro reduce el control del carro."),
+          I("Frena de forma controlada",
+            "Aplica presión progresiva, no de golpe, salvo en una emergencia real. Si el carro tiene ABS, puedes mantener el pedal presionado con firmeza sin bombear."),
+          I("Arranca en pendiente sin retroceder",
+            "Mantén el freno mientras cambias al acelerador; suelta el freno justo cuando sientas que el carro 'muerde' para avanzar."),
         ] },
       { id:"i4", title:"Interacción con otros actores",
         checklist:[
-          I("Guarda distancia de motociclistas"),
-          I("Cede el paso a peatones"),
-          I("Respeta a ciclistas y transporte público", {
-            RD:"No hay una distancia mínima fijada por ley para adelantar ciclistas — mantén al menos 1-1.5 metros como buena práctica.",
-            US:"La distancia mínima para adelantar a un ciclista está fijada por ley en muchos estados (comúnmente 3 pies, unos 0.9 metros) — verifica la regla del estado donde manejes.",
-            VE:"No hay una distancia mínima fijada por ley — mantén al menos 1-1.5 metros como buena práctica.",
-            OCC:"Varios países de la UE, como España, exigen por ley una distancia mínima de 1.5 metros al adelantar un ciclista."
-          }),
+          I("Guarda distancia de motociclistas",
+            "Dales el carril completo al adelantarlos, nunca intentes compartir el mismo carril con una moto, y revisa dos veces el punto ciego — son más difíciles de ver que un carro."),
+          I("Cede el paso a peatones",
+            "Detente por completo en los cruces peatonales señalizados, incluso si el peatón todavía no empezó a cruzar pero está esperando visiblemente."),
+          I("Respeta a ciclistas y transporte público",
+            "Reduce la velocidad y da espacio extra antes de adelantar a un ciclista, sobre todo en curvas o caminos angostos.",
+            {
+              RD:"No hay una distancia mínima fijada por ley para adelantar ciclistas — mantén al menos 1-1.5 metros como buena práctica.",
+              US:"La distancia mínima para adelantar a un ciclista está fijada por ley en muchos estados (comúnmente 3 pies, unos 0.9 metros) — verifica la regla del estado donde manejes.",
+              VE:"No hay una distancia mínima fijada por ley — mantén al menos 1-1.5 metros como buena práctica.",
+              OCC:"Varios países de la UE, como España, exigen por ley una distancia mínima de 1.5 metros al adelantar un ciclista."
+            }),
         ] },
       { id:"i5", title:"Condiciones variables",
         checklist:[
-          I("Maneja de noche con confianza", {
-            RD:"Las luces de día (DRL) no son obligatorias, pero enciende las luces bajas en cuanto baje la visibilidad.",
-            US:"Las luces de día no son obligatorias por ley federal, aunque ya vienen de fábrica en casi todos los carros modernos.",
-            VE:"Las luces de día no son obligatorias por ley.",
-            OCC:"En la Unión Europea, las luces de día son obligatorias por ley en los carros nuevos desde 2011."
-          }),
-          I("Maneja con lluvia leve"),
-          I("Identifica y evita baches a tiempo"),
+          I("Maneja de noche con confianza",
+            "Usa las luces bajas en la ciudad y las altas solo en carretera sin tráfico de frente — cámbialas a bajas en cuanto veas acercarse las luces de otro vehículo.",
+            {
+              RD:"Las luces de día (DRL) no son obligatorias, pero enciende las luces bajas en cuanto baje la visibilidad.",
+              US:"Las luces de día no son obligatorias por ley federal, aunque ya vienen de fábrica en casi todos los carros modernos.",
+              VE:"Las luces de día no son obligatorias por ley.",
+              OCC:"En la Unión Europea, las luces de día son obligatorias por ley en los carros nuevos desde 2011."
+            }),
+          I("Maneja con lluvia leve",
+            "Reduce la velocidad, aumenta la distancia de seguimiento al doble de lo normal, y evita frenar de golpe — el pavimento mojado reduce la tracción."),
+          I("Identifica y evita baches a tiempo",
+            "Mira unos 10-15 segundos adelante en vez de justo frente al carro, para detectar baches con tiempo de reaccionar sin frenar bruscamente ni invadir otro carril sin verificar."),
         ] },
       { id:"i6", title:"Documentación y responsabilidad",
         checklist:[
-          I("Sabe qué documentos llevar", {
-            RD:"Licencia, matrícula del vehículo y seguro obligatorio.",
-            US:"Licencia, el registro del vehículo (registration) y prueba de seguro — el seguro mínimo exigido cambia según el estado.",
-            VE:"Licencia, certificado de circulación y seguro obligatorio del vehículo.",
-            OCC:"Licencia, documentación del vehículo y, en la UE, el 'certificado verde' de seguro reconocido entre países."
-          }),
-          I("Sabe qué hacer en un retén", {
-            RD:"Los retenes están a cargo de AMET/DIGESETT — mantén la calma, ten los documentos a mano y sigue las instrucciones del agente.",
-            US:"Se llama 'traffic stop'; el procedimiento y tus derechos como conductor varían por estado, pero mantener las manos visibles y seguir instrucciones aplica en todos lados.",
-            VE:"Se llaman alcabalas, a cargo de tránsito terrestre — documentos a mano y seguir instrucciones del agente.",
-            OCC:"Los controles de tránsito están regulados por cada país de la UE; documentos a mano es la norma general."
-          }),
-          I("Sabe qué hacer ante un accidente menor"),
+          I("Sabe qué documentos llevar",
+            "Mantén una copia física o digital de tus documentos siempre en el carro, en un lugar fijo donde los puedas encontrar rápido.",
+            {
+              RD:"Licencia, matrícula del vehículo y seguro obligatorio.",
+              US:"Licencia, el registro del vehículo (registration) y prueba de seguro — el mínimo exigido cambia según el estado.",
+              VE:"Licencia, certificado de circulación y seguro obligatorio del vehículo.",
+              OCC:"Licencia, documentación del vehículo y, en la UE, el 'certificado verde' de seguro reconocido entre países."
+            }),
+          I("Sabe qué hacer en un retén",
+            "Reduce la velocidad al acercarte, baja el vidrio, mantén las manos visibles sobre el volante, y ten los documentos listos antes de que te los pidan.",
+            {
+              RD:"Los retenes están a cargo de AMET/DIGESETT.",
+              US:"Se llama 'traffic stop'; el procedimiento y tus derechos como conductor varían por estado.",
+              VE:"Se llaman alcabalas, a cargo de tránsito terrestre.",
+              OCC:"Los controles de tránsito están regulados por cada país de la UE."
+            }),
+          I("Sabe qué hacer ante un accidente menor",
+            "Primero verifica que todos estén bien. Si el carro puede moverse y no hay heridos, llévalo a un lugar seguro antes de intercambiar información y fotografiar la escena original con el teléfono."),
         ] },
     ]
   },
@@ -319,59 +374,81 @@ const CURRICULUM = {
     modules: [
       { id:"a1", title:"Manejo defensivo",
         checklist:[
-          I("Anticipa riesgos antes de que ocurran"),
-          I("Calcula distancia de frenado según velocidad"),
-          I("Mantiene la calma ante conductores agresivos"),
+          I("Anticipa riesgos antes de que ocurran",
+            "Observa más allá del carro de enfrente — las luces de freno dos carros adelante, un peatón acercándose a la acera — para reaccionar antes de que se vuelva una emergencia."),
+          I("Calcula distancia de frenado según velocidad",
+            "La distancia de frenado no crece en línea recta con la velocidad: al doble de velocidad, la distancia de frenado es unas 4 veces mayor, no el doble."),
+          I("Mantiene la calma ante conductores agresivos",
+            "No respondas a bocinazos o gestos agresivos con los tuyos. Si alguien te sigue muy de cerca, cambia de carril con calma y déjalo pasar."),
         ] },
       { id:"a2", title:"Vías de alta velocidad",
         checklist:[
-          I("Se incorpora a la autopista con seguridad", {
-            RD:"En autopistas como la Duarte o Las Américas, los límites típicos están entre 80 y 100 km/h.",
-            US:"En las interestatales, los límites van de 55 a 80 mph (≈ 90-130 km/h) según el estado.",
-            VE:"En las autopistas venezolanas, los límites típicos rondan los 100-120 km/h.",
-            OCC:"En las autopistas de Europa occidental, los límites suelen ir de 120 a 130 km/h; Alemania es la excepción famosa, con tramos de su Autobahn sin límite de velocidad."
-          }),
-          I("Adelanta de forma segura"),
-          I("Usa el carril izquierdo correctamente"),
+          I("Se incorpora a la autopista con seguridad",
+            "Usa el carril de aceleración para igualar tu velocidad a la del tráfico de la autopista antes de incorporarte, no después.",
+            {
+              RD:"En autopistas como la Duarte o Las Américas, los límites típicos están entre 80 y 100 km/h.",
+              US:"En las interestatales, los límites van de 55 a 80 mph (≈ 90-130 km/h) según el estado.",
+              VE:"En las autopistas venezolanas, los límites típicos rondan los 100-120 km/h.",
+              OCC:"En las autopistas de Europa occidental, los límites suelen ir de 120 a 130 km/h; Alemania es la excepción famosa, con tramos de su Autobahn sin límite de velocidad."
+            }),
+          I("Adelanta de forma segura",
+            "Verifica espejo, direccional y punto ciego, adelanta con un cambio de velocidad claro, y vuelve a tu carril solo cuando veas el carro completo por el retrovisor."),
+          I("Usa el carril izquierdo correctamente",
+            "Úsalo solo para adelantar, no para circular de forma constante — vuelve al carril derecho apenas termines la maniobra."),
         ] },
       { id:"a3", title:"Emergencias",
         checklist:[
-          I("Sabe qué hacer ante un pinchazo"),
-          I("Reconoce sobrecalentamiento del motor"),
-          I("Sabe reaccionar si fallan los frenos"),
-          I("Coloca triángulos/luces de emergencia", {
-            RD:"Llevar triángulos es exigido como parte de la inspección técnica vehicular.",
-            US:"No es obligatorio por ley en la mayoría de los estados, aunque se recomienda llevarlos igual.",
-            VE:"Exigido como parte de la inspección vehicular.",
-            OCC:"En la Unión Europea, llevar un triángulo reflectante (y en varios países también un chaleco reflectante) es obligatorio por ley."
-          }),
+          I("Sabe qué hacer ante un pinchazo",
+            "Sujeta firme el volante, no frenes de golpe, reduce la velocidad gradualmente y orilla el carro lejos del tráfico antes de detenerte por completo."),
+          I("Reconoce sobrecalentamiento del motor",
+            "Si el indicador de temperatura sube al rojo o sale humo/vapor del capó, orilla y apaga el motor — nunca abras el radiador caliente."),
+          I("Sabe reaccionar si fallan los frenos",
+            "Bombea el pedal repetidamente, cambia a una marcha más baja, y usa el freno de mano de forma progresiva mientras buscas un espacio seguro para detenerte."),
+          I("Coloca triángulos/luces de emergencia",
+            "Enciende las luces de emergencia de inmediato, y coloca los triángulos a suficiente distancia detrás del carro para que otros conductores tengan tiempo de reaccionar.",
+            {
+              RD:"Llevar triángulos es exigido como parte de la inspección técnica vehicular.",
+              US:"No es obligatorio por ley en la mayoría de los estados, aunque se recomienda llevarlos igual.",
+              VE:"Exigido como parte de la inspección vehicular.",
+              OCC:"En la Unión Europea, llevar un triángulo reflectante (y en varios países también un chaleco reflectante) es obligatorio por ley."
+            }),
         ] },
       { id:"a4", title:"Condiciones difíciles",
         checklist:[
-          I("Maneja en zona montañosa"),
-          I("Maneja en hora pico/ciudad congestionada"),
-          I("Maneja cruces sin semáforo"),
+          I("Maneja en zona montañosa",
+            "En bajadas largas, usa una marcha baja en vez de frenar constantemente, para evitar que los frenos se sobrecalienten."),
+          I("Maneja en hora pico/ciudad congestionada",
+            "Mantén más distancia de la normal incluso a baja velocidad — en tráfico detenido es fácil distraerse y dar un golpe leve."),
+          I("Maneja cruces sin semáforo",
+            "Reduce la velocidad al acercarte, haz contacto visual con otros conductores cuando sea posible, y nunca asumas que el otro te va a ceder el paso."),
         ] },
       { id:"a5", title:"Eficiencia y mantenimiento",
         checklist:[
-          I("Aplica manejo económico"),
-          I("Reconoce señales de que el carro necesita mecánico", {
-            RD:"La inspección técnica vehicular es exigida por INTRANT.",
-            US:"Varía por estado; varios no exigen ninguna inspección periódica.",
-            VE:"Hay inspección exigida, aunque su cumplimiento práctico varía mucho según la zona.",
-            OCC:"La ITV (o su equivalente) es obligatoria y estricta en casi toda la Unión Europea."
-          }),
+          I("Aplica manejo económico",
+            "Acelera y frena de forma progresiva, mantén una velocidad constante cuando puedas, y evita dejar el motor encendido sin necesidad."),
+          I("Reconoce señales de que el carro necesita mecánico",
+            "Presta atención a ruidos nuevos, vibraciones, luces de advertencia en el tablero, u olor a quemado — cualquiera de estos es razón para revisar antes de seguir manejando.",
+            {
+              RD:"La inspección técnica vehicular es exigida por INTRANT.",
+              US:"Varía por estado; varios no exigen ninguna inspección periódica.",
+              VE:"Hay inspección exigida, aunque su cumplimiento práctico varía mucho según la zona.",
+              OCC:"La ITV (o su equivalente) es obligatoria y estricta en casi toda la Unión Europea."
+            }),
         ] },
       { id:"a6", title:"Preparación final para el examen",
         checklist:[
-          I("Aprueba el simulacro teórico (≥90%)"),
-          I("Aprueba el simulacro práctico completo"),
-          I("Sabe qué esperar el día del examen", {
-            RD:"La autoridad que certifica es INTRANT.",
-            US:"La autoridad que certifica es el DMV de cada estado.",
-            VE:"La autoridad que certifica es el INTT.",
-            OCC:"La autoridad que certifica es la de tránsito de cada país (por ejemplo, la DGT en España)."
-          }),
+          I("Aprueba el simulacro teórico (≥90%)",
+            "Practica con preguntas de examen reales varias veces hasta superar consistentemente el puntaje mínimo, no solo una vez."),
+          I("Aprueba el simulacro práctico completo",
+            "Haz un recorrido que combine todas las maniobras aprendidas en una sola sesión, igual que se evalúa en el examen real."),
+          I("Sabe qué esperar el día del examen",
+            "Duerme bien la noche antes, llega con tiempo de sobra, y lleva todos los documentos requeridos en una carpeta para no buscarlos con nervios.",
+            {
+              RD:"La autoridad que certifica es INTRANT.",
+              US:"La autoridad que certifica es el DMV de cada estado.",
+              VE:"La autoridad que certifica es el INTT.",
+              OCC:"La autoridad que certifica es la de tránsito de cada país (por ejemplo, la DGT en España)."
+            }),
         ] },
     ]
   }
@@ -539,6 +616,13 @@ function renderModules(){
       const span = document.createElement("span");
       span.textContent = item.text;
       textWrap.appendChild(span);
+
+      if(item.howto){
+        const how = document.createElement("div");
+        how.className = "howto-note";
+        how.textContent = item.howto;
+        textWrap.appendChild(how);
+      }
 
       const countryTip = item.tips && item.tips[store.country];
       if(countryTip){
