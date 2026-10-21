@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>App Manejo</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#155e52">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="App Manejo">
+<style>
+  :root{
+    --bg:#f6f4ef; --surface:#ffffff; --fg:#17231f; --muted:#5b6b64;
+    --line:#e1ddd2; --accent:#155e52; --accent-fg:#ffffff; --amber:#c98a1f;
+    --ok:#2f7a4f; --pending:#9a9488;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1715; --surface:#172420; --fg:#eef1ee; --muted:#9cada3;
+      --line:#28362f; --accent:#4fb3a0; --accent-fg:#0b1b17; --amber:#e3a84a;
+      --ok:#5fbf84; --pending:#6b7772;
+      color-scheme: dark;
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    padding-left:max(16px, env(safe-area-inset-left,0px));
+    padding-right:max(16px, env(safe-area-inset-right,0px));
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%;}
+  .wrap{max-width:640px; margin:0 auto;}
+  header{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:10;
+    background:var(--bg); padding:14px 0 10px; border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand .logo{width:34px; height:34px; border-radius:9px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent-fg); font-weight:700;}
+  .brand h1{font-size:17px; margin:0; letter-spacing:.2px;}
+  .brand small{display:block; color:var(--muted); font-size:12px; margin-top:1px;}
+  #install-btn{
+    margin-left:auto; border:1px solid var(--accent); background:transparent; color:var(--accent);
+    border-radius:8px; padding:7px 10px; font-size:12.5px; font-weight:600; cursor:pointer;
+  }
+  #install-btn[hidden]{display:none;}
+
+  .profile-row{display:flex; gap:8px; margin-top:12px; align-items:center;}
+  .profile-row label{font-size:12px; color:var(--muted); white-space:nowrap;}
+  select, input[type=text], input[type=url], textarea{
+    font-family:inherit; font-size:14px; color:var(--fg); background:var(--surface);
+    border:1px solid var(--line); border-radius:8px; padding:8px 10px; width:100%;
+  }
+  select{flex:1;}
+
+  .tabs{display:flex; gap:6px; margin:14px 0 16px; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:4px;}
+  .tab{flex:1; text-align:center; padding:8px 4px; border-radius:7px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; user-select:none;}
+  .tab.active{background:var(--accent); color:var(--accent-fg);}
+
+  .stage-progress{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .bar{flex:1; height:8px; background:var(--line); border-radius:99px; overflow:hidden;}
+  .bar > span{display:block; height:100%; background:var(--accent); border-radius:99px; transition:width .25s;}
+  .stage-progress b{font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap;}
+
+  .module{background:var(--surface); border:1px solid var(--line); border-radius:12px; margin-bottom:10px; overflow:hidden;}
+  .module-head{display:flex; align-items:center; gap:10px; padding:13px 14px; cursor:pointer;}
+  .module-head .n{width:24px; height:24px; border-radius:7px; background:var(--line); color:var(--muted); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
+  .module-head .title{flex:1; min-width:0; font-size:14.5px; font-weight:600;}
+  .module-head .count{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .chev{transition:transform .2s; color:var(--muted); flex:none;}
+  .module.open .chev{transform:rotate(90deg);}
+  .module-body{display:none; padding:0 14px 14px; border-top:1px solid var(--line);}
+  .module.open .module-body{display:block;}
+
+  .video-box{margin:12px 0; padding:10px; border:1px dashed var(--line); border-radius:9px; background:var(--bg);}
+  .video-box.has-video{border-style:solid; border-color:var(--ok);}
+  .video-box .vb-label{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; display:block;}
+  .video-box a.vlink{color:var(--accent); font-weight:600; font-size:13.5px; word-break:break-all;}
+  .video-box .pending{color:var(--pending); font-size:13px; font-style:italic;}
+  .video-box .vrow{display:flex; gap:6px; margin-top:8px;}
+  .video-box .vrow input{flex:1;}
+  .video-box .vrow button{border:none; background:var(--accent); color:var(--accent-fg); border-radius:7px; padding:0 12px; font-size:12.5px; font-weight:600; cursor:pointer;}
+
+  ul.checklist{list-style:none; margin:10px 0 0; padding:0;}
+  ul.checklist li{display:flex; align-items:flex-start; gap:9px; padding:7px 0; border-bottom:1px solid var(--line); font-size:13.8px;}
+  ul.checklist li:last-child{border-bottom:none;}
+  ul.checklist input[type=checkbox]{width:18px; height:18px; margin-top:1px; accent-color:var(--accent); flex:none;}
+  ul.checklist li.checked span{color:var(--muted); text-decoration:line-through;}
+
+  .notes{margin-top:12px;}
+  .notes .vb-label{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; display:block;}
+  .notes textarea{min-height:56px; resize:vertical;}
+
+  footer{margin:22px 0 40px; padding-top:16px; border-top:1px solid var(--line);}
+  footer .vb-label{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; display:block;}
+  footer textarea{min-height:90px;}
+  .hint{font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.4;}
+  .toast{
+    position:fixed; left:16px; right:16px; bottom:calc(16px + env(safe-area-inset-bottom,0px));
+    background:var(--accent); color:var(--accent-fg); padding:10px 14px; border-radius:9px;
+    font-size:13px; text-align:center; transform:translateY(80px); opacity:0; transition:all .25s; z-index:50;
+  }
+  .toast.show{transform:translateY(0); opacity:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">AM</div>
+      <div>
+        <h1>App Manejo</h1>
+        <small id="stage-sub">Guía para aprender a conducir</small>
+      </div>
+      <button id="install-btn" hidden>Instalar</button>
+    </div>
+    <div class="profile-row">
+      <label for="profile">Alumno</label>
+      <select id="profile"></select>
+      <input id="profile-new" type="text" placeholder="Nuevo alumno…" style="max-width:120px" hidden>
+    </div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="stage-progress">
+    <div class="bar"><span id="stage-bar-fill" style="width:0%"></span></div>
+    <b id="stage-bar-label">0/0</b>
+  </div>
+
+  <div id="modules"></div>
+
+  <footer>
+    <span class="vb-label">Notas generales de esta etapa (qué falta, qué agregar)</span>
+    <textarea id="stage-notes" placeholder="Ej: falta un video de cómo reaccionar ante un retén…"></textarea>
+    <div class="hint">Esto es una versión de prueba. Lo que escribas aquí y en cada módulo queda guardado en este teléfono para revisarlo juntos y decidir qué agregar.</div>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CURRICULUM = {
+  principiante: {
+    label: "Principiante",
+    modules: [
+      { id:"p1", title:"El vehículo por dentro",
+        checklist:["Identifica volante, pedales y palanca/automático","Reconoce el tablero e indicadores","Ajusta espejos y asiento","Se abrocha el cinturón antes de todo"] },
+      { id:"p2", title:"Antes de arrancar",
+        checklist:["Completa el checklist pre-manejo (combustible, luces, llantas)","Revisa frenos de mano y espejos","Arranca con la posición correcta al volante"] },
+      { id:"p3", title:"Señales de tránsito",
+        checklist:["Reconoce señales reglamentarias","Reconoce señales preventivas e informativas","Entiende las líneas y marcas viales","Responde correctamente a los semáforos"] },
+      { id:"p4", title:"Normas básicas de circulación",
+        checklist:["Respeta el derecho de vía","Mantiene el límite de velocidad","Guarda distancia de seguimiento","Usa direccionales y luces correctamente"] },
+      { id:"p5", title:"Maniobras básicas en espacio controlado",
+        checklist:["Arranca y detiene el vehículo con suavidad","Gira a baja velocidad usando espejos","Revisa el punto ciego antes de moverse"] },
+      { id:"p6", title:"Marco legal: carnet de aprendizaje",
+        checklist:["Explica qué es el carnet de aprendizaje","Conoce las categorías de licencia (1, 2, 3, 4)","Sabe que debe ir siempre con acompañante con licencia"] },
+    ]
+  },
+  intermedio: {
+    label: "Intermedio",
+    modules: [
+      { id:"i1", title:"Manejo en vía urbana",
+        checklist:["Cruza intersecciones con seguridad","Maneja rotondas/glorietas","Cambia de carril verificando espejos y punto ciego"] },
+      { id:"i2", title:"Estacionamiento",
+        checklist:["Estaciona en paralelo","Estaciona en reversa","Estaciona en línea/diagonal"] },
+      { id:"i3", title:"Maniobras del examen práctico",
+        checklist:["Usa direccionales en el momento correcto","Controla velocidad en curvas","Frena de forma controlada","Arranca en pendiente sin retroceder"] },
+      { id:"i4", title:"Interacción con otros actores",
+        checklist:["Guarda distancia de motociclistas","Cede el paso a peatones","Respeta a ciclistas y transporte público"] },
+      { id:"i5", title:"Condiciones variables",
+        checklist:["Maneja de noche con confianza","Maneja con lluvia leve","Identifica y evita baches a tiempo"] },
+      { id:"i6", title:"Documentación y responsabilidad",
+        checklist:["Sabe qué documentos llevar","Sabe qué hacer en un retén","Sabe qué hacer ante un accidente menor"] },
+    ]
+  },
+  avanzado: {
+    label: "Avanzado",
+    modules: [
+      { id:"a1", title:"Manejo defensivo",
+        checklist:["Anticipa riesgos antes de que ocurran","Calcula distancia de frenado según velocidad","Mantiene la calma ante conductores agresivos"] },
+      { id:"a2", title:"Vías de alta velocidad",
+        checklist:["Se incorpora a la autopista con seguridad","Adelanta de forma segura","Usa el carril izquierdo correctamente"] },
+      { id:"a3", title:"Emergencias",
+        checklist:["Sabe qué hacer ante un pinchazo","Reconoce sobrecalentamiento del motor","Sabe reaccionar si fallan los frenos","Coloca triángulos/luces de emergencia"] },
+      { id:"a4", title:"Condiciones difíciles",
+        checklist:["Maneja en zona montañosa","Maneja en hora pico/ciudad congestionada","Maneja cruces sin semáforo"] },
+      { id:"a5", title:"Eficiencia y mantenimiento",
+        checklist:["Aplica manejo económico","Reconoce señales de que el carro necesita mecánico"] },
+      { id:"a6", title:"Preparación final para el examen",
+        checklist:["Aprueba el simulacro teórico (≥90%)","Aprueba el simulacro práctico completo","Sabe qué esperar el día del examen en INTRANT"] },
+    ]
+  }
+};
+
+const STORE_KEY = "appmanejo_v1";
+function loadStore(){
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e){ return {}; }
+}
+function saveStore(s){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch(e){}
+}
+let store = loadStore();
+store.profiles = store.profiles || ["Alumno 1"];
+store.currentProfile = store.currentProfile || store.profiles[0];
+store.progress = store.progress || {};          // {profile: {moduleId: {itemIndex: bool}}}
+store.videos = store.videos || {};              // {moduleId: url}  (compartido entre alumnos)
+store.moduleNotes = store.moduleNotes || {};     // {moduleId: text}
+store.stageNotes = store.stageNotes || {};       // {stageKey: text}
+store.currentStage = store.currentStage || "principiante";
+saveStore(store);
+
+const el = (sel) => document.querySelector(sel);
+const profileSel = el("#profile");
+const tabsEl = el("#tabs");
+const modulesEl = el("#modules");
+const stageSub = el("#stage-sub");
+const barFill = el("#stage-bar-fill");
+const barLabel = el("#stage-bar-label");
+const stageNotesEl = el("#stage-notes");
+const toastEl = el("#toast");
+
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastEl._t);
+  toastEl._t = setTimeout(()=>toastEl.classList.remove("show"), 1400);
+}
+
+function renderProfiles(){
+  profileSel.innerHTML = "";
+  store.profiles.forEach(p=>{
+    const o = document.createElement("option");
+    o.value = p; o.textContent = p;
+    if(p === store.currentProfile) o.selected = true;
+    profileSel.appendChild(o);
+  });
+  const addOpt = document.createElement("option");
+  addOpt.value = "__add__"; addOpt.textContent = "+ Agregar alumno";
+  profileSel.appendChild(addOpt);
+}
+
+function renderTabs(){
+  tabsEl.innerHTML = "";
+  Object.keys(CURRICULUM).forEach(key=>{
+    const t = document.createElement("div");
+    t.className = "tab" + (key===store.currentStage ? " active" : "");
+    t.textContent = CURRICULUM[key].label;
+    t.onclick = ()=>{ store.currentStage = key; saveStore(store); renderAll(); };
+    tabsEl.appendChild(t);
+  });
+}
+
+function getProgressFor(profile, moduleId){
+  store.progress[profile] = store.progress[profile] || {};
+  store.progress[profile][moduleId] = store.progress[profile][moduleId] || {};
+  return store.progress[profile][moduleId];
+}
+
+function stageStats(stageKey){
+  const stage = CURRICULUM[stageKey];
+  let total=0, done=0;
+  stage.modules.forEach(m=>{
+    const prog = getProgressFor(store.currentProfile, m.id);
+    m.checklist.forEach((_,i)=>{ total++; if(prog[i]) done++; });
+  });
+  return {total, done};
+}
+
+function renderProgressBar(){
+  const {total, done} = stageStats(store.currentStage);
+  const pct = total ? Math.round((done/total)*100) : 0;
+  barFill.style.width = pct + "%";
+  barLabel.textContent = `${done}/${total}`;
+  stageSub.textContent = `${store.currentProfile} · ${CURRICULUM[store.currentStage].label} · ${pct}% completado`;
+}
+
+let openModule = null;
+
+function renderModules(){
+  modulesEl.innerHTML = "";
+  const stage = CURRICULUM[store.currentStage];
+  stage.modules.forEach((m, idx)=>{
+    const prog = getProgressFor(store.currentProfile, m.id);
+    const doneCount = m.checklist.filter((_,i)=>prog[i]).length;
+
+    const wrap = document.createElement("div");
+    wrap.className = "module" + (openModule===m.id ? " open" : "");
+
+    const head = document.createElement("div");
+    head.className = "module-head";
+    head.innerHTML = `
+      <div class="n">${idx+1}</div>
+      <div class="title">${m.title}</div>
+      <div class="count">${doneCount}/${m.checklist.length}</div>
+      <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    `;
+    head.onclick = ()=>{ openModule = (openModule===m.id ? null : m.id); renderModules(); };
+    wrap.appendChild(head);
+
+    const body = document.createElement("div");
+    body.className = "module-body";
+
+    const videoUrl = store.videos[m.id] || "";
+    const vb = document.createElement("div");
+    vb.className = "video-box" + (videoUrl ? " has-video" : "");
+    vb.innerHTML = `
+      <span class="vb-label">Video de la lección</span>
+      ${videoUrl
+        ? `<a class="vlink" href="${videoUrl}" target="_blank" rel="noopener">${videoUrl}</a>`
+        : `<span class="pending">Video pendiente de grabar</span>`}
+      <div class="vrow">
+        <input type="url" placeholder="Pega el enlace del video al grabarlo…" value="${videoUrl}">
+        <button type="button">Guardar</button>
+      </div>
+    `;
+    const vinput = vb.querySelector("input");
+    vb.querySelector("button").onclick = ()=>{
+      store.videos[m.id] = vinput.value.trim();
+      saveStore(store);
+      toast("Video guardado");
+      renderModules();
+    };
+    body.appendChild(vb);
+
+    const ul = document.createElement("ul");
+    ul.className = "checklist";
+    m.checklist.forEach((item, i)=>{
+      const li = document.createElement("li");
+      if(prog[i]) li.classList.add("checked");
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = !!prog[i];
+      cb.id = `cb-${m.id}-${i}`;
+      cb.onchange = ()=>{
+        prog[i] = cb.checked;
+        saveStore(store);
+        renderModules();
+        renderProgressBar();
+      };
+      const span = document.createElement("span");
+      span.textContent = item;
+      li.appendChild(cb); li.appendChild(span);
+      ul.appendChild(li);
+    });
+    body.appendChild(ul);
+
+    const notesWrap = document.createElement("div");
+    notesWrap.className = "notes";
+    notesWrap.innerHTML = `<span class="vb-label">Notas de este módulo</span>
+      <textarea placeholder="Ej: agregar un ítem sobre uso del claxon…">${store.moduleNotes[m.id] || ""}</textarea>`;
+    const ta = notesWrap.querySelector("textarea");
+    ta.onblur = ()=>{ store.moduleNotes[m.id] = ta.value; saveStore(store); };
+    body.appendChild(notesWrap);
+
+    wrap.appendChild(body);
+    modulesEl.appendChild(wrap);
+  });
+}
+
+function renderStageNotes(){
+  stageNotesEl.value = store.stageNotes[store.currentStage] || "";
+}
+stageNotesEl.addEventListener("blur", ()=>{
+  store.stageNotes[store.currentStage] = stageNotesEl.value;
+  saveStore(store);
+});
+
+profileSel.addEventListener("change", ()=>{
+  if(profileSel.value === "__add__"){
+    const name = prompt("Nombre del nuevo alumno:");
+    if(name && name.trim()){
+      const n = name.trim();
+      if(!store.profiles.includes(n)) store.profiles.push(n);
+      store.currentProfile = n;
+      saveStore(store);
+    }
+  } else {
+    store.currentProfile = profileSel.value;
+    saveStore(store);
+  }
+  renderAll();
+});
+
+function renderAll(){
+  renderProfiles();
+  renderTabs();
+  renderModules();
+  renderProgressBar();
+  renderStageNotes();
+}
+renderAll();
+
+// --- Instalación PWA ---
+let deferredInstall = null;
+const installBtn = el("#install-btn");
+window.addEventListener("beforeinstallprompt", (e)=>{
+  e.preventDefault();
+  deferredInstall = e;
+  installBtn.hidden = false;
+});
+installBtn.addEventListener("click", async ()=>{
+  if(!deferredInstall) return;
+  deferredInstall.prompt();
+  await deferredInstall.userChoice;
+  deferredInstall = null;
+  installBtn.hidden = true;
+});
+window.addEventListener("appinstalled", ()=>{ toast("App instalada"); });
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
