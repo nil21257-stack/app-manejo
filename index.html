@@ -105,8 +105,13 @@
   ul.checklist li{display:flex; align-items:flex-start; gap:9px; padding:7px 0; border-bottom:1px solid var(--line); font-size:13.8px;}
   ul.checklist li:last-child{border-bottom:none;}
   ul.checklist input[type=checkbox]{width:18px; height:18px; margin-top:1px; accent-color:var(--accent); flex:none;}
-  ul.checklist li.checked > div > span{color:var(--muted); text-decoration:line-through;}
+  ul.checklist li.checked .item-head-row span{color:var(--muted); text-decoration:line-through;}
   ul.checklist li > div{flex:1; min-width:0;}
+  .item-head-row{display:flex; align-items:flex-start; gap:8px;}
+  .item-head-row span{flex:1; min-width:0;}
+  .speak-btn{flex:none; width:26px; height:26px; border-radius:7px; border:1px solid var(--line); background:var(--surface); color:var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;}
+  .speak-btn svg{width:14px; height:14px;}
+  .speak-btn:active{background:var(--accent-soft);}
   .howto-note{font-size:13px; color:var(--fg); line-height:1.5; margin-top:5px; padding:8px 9px; background:var(--bg); border-left:2px solid var(--accent); border-radius:4px;}
   .legal-note{font-size:12px; color:var(--muted); line-height:1.45; margin-top:6px; padding:7px 8px; background:var(--bg); border-left:2px solid var(--amber); border-radius:4px;}
 
@@ -521,6 +526,41 @@ const barLabel = el("#stage-bar-label");
 const stageNotesEl = el("#stage-notes");
 const toastEl = el("#toast");
 
+// --- Texto a voz: botón "Escuchar" por ítem ---
+const speechSupported = "speechSynthesis" in window;
+let currentUtterance = null;
+let currentSpeakBtn = null;
+function speakIconSvg(playing){
+  return playing
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>`;
+}
+function pickSpanishVoice(){
+  const voices = window.speechSynthesis.getVoices();
+  return voices.find(v => v.lang && v.lang.toLowerCase().startsWith("es")) || null;
+}
+function speakText(text, btn){
+  if(!speechSupported) return;
+  const isSameBtn = currentSpeakBtn === btn;
+  window.speechSynthesis.cancel();
+  if(currentSpeakBtn) currentSpeakBtn.innerHTML = speakIconSvg(false);
+  if(isSameBtn && currentUtterance){
+    currentUtterance = null; currentSpeakBtn = null;
+    return; // actuaba como botón de "detener"
+  }
+  const u = new SpeechSynthesisUtterance(text);
+  const voice = pickSpanishVoice();
+  if(voice) u.voice = voice;
+  u.lang = voice ? voice.lang : "es-ES";
+  u.rate = 0.95;
+  u.onend = ()=>{ btn.innerHTML = speakIconSvg(false); currentUtterance = null; currentSpeakBtn = null; };
+  u.onerror = u.onend;
+  currentUtterance = u; currentSpeakBtn = btn;
+  btn.innerHTML = speakIconSvg(true);
+  window.speechSynthesis.speak(u);
+}
+if(speechSupported) window.speechSynthesis.onvoiceschanged = ()=>{};
+
 function toast(msg, celebrate){
   toastEl.textContent = msg;
   toastEl.classList.toggle("celebrate", !!celebrate);
@@ -657,9 +697,25 @@ function renderModules(){
       };
       const textWrap = document.createElement("div");
       textWrap.style.minWidth = "0";
+      const headRow = document.createElement("div");
+      headRow.className = "item-head-row";
       const span = document.createElement("span");
       span.textContent = item.text;
-      textWrap.appendChild(span);
+      headRow.appendChild(span);
+      if(speechSupported){
+        const speakBtn = document.createElement("button");
+        speakBtn.type = "button";
+        speakBtn.className = "speak-btn";
+        speakBtn.setAttribute("aria-label", "Escuchar");
+        speakBtn.innerHTML = speakIconSvg();
+        speakBtn.onclick = (ev)=>{
+          ev.stopPropagation();
+          const toSpeak = [item.text, item.howto].filter(Boolean).join(". ");
+          speakText(toSpeak, speakBtn);
+        };
+        headRow.appendChild(speakBtn);
+      }
+      textWrap.appendChild(headRow);
 
       if(item.howto){
         const how = document.createElement("div");
